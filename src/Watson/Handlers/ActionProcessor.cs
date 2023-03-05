@@ -27,8 +27,8 @@ public class ActionProcessor : IActionProcessor
         // split line to get action
         Actions action = Enum.TryParse(arguments[0], true, out action) ? action : Actions.Unknown;
 
-        method = arguments[1];
-        parameter = arguments.Length > 2 ? arguments[2] : arguments[1];
+        method = arguments.Length > 1 ? arguments[1] : string.Empty;
+        parameter = arguments.Length > 2 ? arguments[2] : method;
 
         Console.WriteLine($"Action: {action}");
         Console.WriteLine($"Method: {method}");
@@ -46,6 +46,9 @@ public class ActionProcessor : IActionProcessor
                 break;
             case Actions.ShutDown:
                 _computerManager.ShutDown(parameter);
+                break;
+            case Actions.Module:
+                _scriptHandler.LoadModule(method, parameter);
                 break;
             case Actions.Function:
                 _scriptHandler.Invoke(method, parameter);

@@ -8,6 +8,7 @@ public enum Actions {
     Function,
     Shuffle,
     Command,
+    Module,
     ShutDown,
     Unknown
 }
