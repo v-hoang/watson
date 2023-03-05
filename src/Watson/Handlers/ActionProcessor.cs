@@ -18,7 +18,38 @@ public class ActionProcessor : IActionProcessor
         _scriptHandler = scriptHandler;
     }
 
-    public bool ProcessLine(string line)
+    public bool Process(string filepath, int attempt = 0)
+    {
+        attempt++;
+
+        try
+        {
+            var content = File.ReadAllText(filepath);
+            var success = ProcessLine(content);
+
+            Console.WriteLine($"Finished processing file with result: {success}");
+
+            return success;
+        }
+        catch (IOException ex)
+        {
+            if (attempt < Constants.MaxRetries)
+            {
+                var delay = Constants.RetryReadDelay * attempt;
+
+                Console.WriteLine($"Failed to read file. Retrying in {delay}ms...");
+                Thread.Sleep(delay);
+                return Process(filepath, attempt);
+            }
+            else
+            {
+                Console.WriteLine($"Could not read file: {filepath}. Error: {ex.Message}. Trace: {ex.StackTrace}");
+                throw ex;                
+            }
+        }
+    }
+
+    private bool ProcessLine(string line)
     {
         var arguments = line.Split(Constants.Separators.Action);
 
@@ -27,8 +58,8 @@ public class ActionProcessor : IActionProcessor
         // split line to get action
         Actions action = Enum.TryParse(arguments[0], true, out action) ? action : Actions.Unknown;
 
-        method = arguments[1];
-        parameter = arguments.Length > 2 ? arguments[2] : arguments[1];
+        method = arguments.Length > 1 ? arguments[1] : string.Empty;
+        parameter = arguments.Length > 2 ? arguments[2] : method;
 
         Console.WriteLine($"Action: {action}");
         Console.WriteLine($"Method: {method}");
@@ -46,6 +77,9 @@ public class ActionProcessor : IActionProcessor
                 break;
             case Actions.ShutDown:
                 _computerManager.ShutDown(parameter);
+                break;
+            case Actions.Module:
+                _scriptHandler.LoadModule(method, parameter);
                 break;
             case Actions.Function:
                 _scriptHandler.Invoke(method, parameter);
