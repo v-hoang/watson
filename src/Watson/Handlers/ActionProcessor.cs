@@ -18,7 +18,38 @@ public class ActionProcessor : IActionProcessor
         _scriptHandler = scriptHandler;
     }
 
-    public bool ProcessLine(string line)
+    public bool Process(string filepath, int attempt = 0)
+    {
+        attempt++;
+
+        try
+        {
+            var content = File.ReadAllText(filepath);
+            var success = ProcessLine(content);
+
+            Console.WriteLine($"Finished processing file with result: {success}");
+
+            return success;
+        }
+        catch (IOException ex)
+        {
+            if (attempt < Constants.MaxRetries)
+            {
+                var delay = Constants.RetryReadDelay * attempt;
+
+                Console.WriteLine($"Failed to read file. Retrying in {delay}ms...");
+                Thread.Sleep(delay);
+                return Process(filepath, attempt);
+            }
+            else
+            {
+                Console.WriteLine($"Could not read file: {filepath}. Error: {ex.Message}. Trace: {ex.StackTrace}");
+                throw ex;                
+            }
+        }
+    }
+
+    private bool ProcessLine(string line)
     {
         var arguments = line.Split(Constants.Separators.Action);
 

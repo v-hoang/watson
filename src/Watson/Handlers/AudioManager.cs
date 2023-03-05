@@ -12,7 +12,6 @@ public class AudioManager
 
     public bool SetVolume(string volumeString)
     {
-
         if (!int.TryParse(volumeString, out int volume))
         {
             Console.WriteLine("Invalid volume - cannot be parsed to an integer");
@@ -24,15 +23,24 @@ public class AudioManager
         // Get the default audio endpoint device
         var device = _enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
 
-        // Get the current volume
-        float currentVolume = device.AudioEndpointVolume.MasterVolumeLevelScalar;
+        Console.WriteLine($"Device name: {device.FriendlyName}");
+        Console.WriteLine($"Device state: {device.State}");
+        Console.WriteLine($"Device is muted: {device.AudioEndpointVolume.Mute}");
 
         // Set the volume to a new value (between 0 and 1)
         float newVolume = volume == 0 ? 0 : volume / 100;
 
-        device.AudioEndpointVolume.MasterVolumeLevelScalar = newVolume;
+        if (volume == 0)
+        {
+            device.AudioEndpointVolume.Mute = true;
+        }
+        else
+        {
+            device.AudioEndpointVolume.Mute = false;
+            device.AudioEndpointVolume.MasterVolumeLevelScalar = newVolume;
+        }
 
-        return false;
+        return true;
     }
 
     public void Mute()

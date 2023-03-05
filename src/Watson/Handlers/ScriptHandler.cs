@@ -37,13 +37,15 @@ public class ScriptHandler : IScriptHandler
         try
         {
             Console.WriteLine($"Profile path: {_profilePath}");
+            var script = File.ReadAllText(_profilePath);
+            var powershell = CreateUnrestricted()
+                    .AddScript(script);
 
-            var powershell = PowerShell.Create()
-            // AddStatement("Set-ExecutionPolicy").AddArgument("Unrestricted -Scope CurrentUser")
-                    .AddScript($"& \"{_profilePath}\"")
-                    .AddScript(function);
+            powershell.Invoke();
 
-            var results = powershell.Invoke(parameters);
+            var results = powershell.AddCommand(function)
+                    .AddArgument(parameters)
+                    .Invoke();
 
             foreach (var result in results)
             {
@@ -82,7 +84,7 @@ public class ScriptHandler : IScriptHandler
                 Console.WriteLine("Cannot proceed if module does not exist");
                 return false;
             }
-                    
+
             var powershell = CreateUnrestricted().AddCommand("Import-Module")
                     .AddParameter("Name", module)
                     .InvokeLog() // import module only
@@ -121,14 +123,15 @@ public class ScriptHandler : IScriptHandler
 
             Console.WriteLine($"Function path: {functionPath}");
             Console.WriteLine($"Invoke: {invoke}");
-
+            var script = File.ReadAllText(functionPath);
             var powershell = PowerShell.Create()
-                      .AddScript(functionPath)
-                      // .AddScript(invoke);
-                      .AddCommand(function)
-                      .AddArgument(parameters);
+                      .AddScript(script);
 
-            var results = powershell.InvokeLog();
+            powershell.Invoke();
+
+            powershell.AddCommand(function)
+                    .AddArgument(parameters)
+                    .Invoke();
         }
         catch (Exception ex)
         {

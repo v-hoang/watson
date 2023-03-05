@@ -1,9 +1,8 @@
 .vscode/*
 /.vs
+/.vs/*
 
 src/*/bin/*
 src/*/obj/*
 
-appsettings.Development.json
-src/Watson/appsettings.Production.json
-src/Watson/.vs/slnx.sqlite
+appsettings.*.json

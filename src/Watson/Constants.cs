@@ -3,6 +3,7 @@ namespace Watson;
 public struct Constants
 {
     public const int MaxRetries = 10;
+    public const int RetryReadDelay = 100;
     public const int RetryDelay = 50;
     public const string Filter = "*.txt";
 

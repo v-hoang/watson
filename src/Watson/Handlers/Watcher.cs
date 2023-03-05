@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using Watson.Abstractions;
 
 namespace Watson.Handlers;
@@ -45,22 +44,25 @@ public class Watcher : IWatcher
         {
             Path = _path,
             Filter = Constants.Filter,
-            NotifyFilter = NotifyFilters.LastWrite
-                        | NotifyFilters.LastAccess
-                        | NotifyFilters.FileName
-                        | NotifyFilters.DirectoryName,
+            NotifyFilter = NotifyFilters.CreationTime
+                         | NotifyFilters.FileName
+                         | NotifyFilters.DirectoryName,
             EnableRaisingEvents = true
         };
 
-        // watcher.Changed += OnCreated;
         watcher.Created += OnCreated;
+
+        watcher.Changed += DoNothing;
+        watcher.Deleted += DoNothing;
+        watcher.Renamed += DoNothing;
     }
 
     // define event handlers for the file change events
+    private void DoNothing(object sender, FileSystemEventArgs e) {}
+    
     private void OnCreated(object sender, FileSystemEventArgs e)
     {
         var filepath = e.FullPath;
-        Console.WriteLine($"File created: {filepath}");
 
         if (!File.Exists(filepath))
         {
@@ -68,24 +70,11 @@ public class Watcher : IWatcher
             return;
         }
 
+        Console.WriteLine($"File created: {filepath}");
+
         try
         {
-            // read all lines
-            var lines = File.ReadLines(filepath);
-
-            // process each line as an action
-            foreach (var line in lines)
-            {
-                Console.WriteLine($"Line: {line}");
-                var parsed = Regex.Replace(line, @"\t|\r", "");
-                _processor.ProcessLine(parsed);
-            }
-
-            Console.WriteLine("Finished processing file");
-        }
-        catch (IOException ex)
-        {
-            Console.WriteLine($"Could not read file: {filepath}. Error: {ex.Message}. Trace: {ex.StackTrace}");
+            _processor.Process(filepath);
         }
         catch (Exception ex)
         {
@@ -93,46 +82,11 @@ public class Watcher : IWatcher
         }
         finally
         {
+            Thread.Sleep(500);
             File.Delete(filepath);
-            // Delete(filepath);
             // Archive(filepath, e.Name);
+            Thread.Sleep(500);
         }
-    }
-
-    private void Delete(string filepath)
-    {
-        if (!File.Exists(filepath))
-        {
-            return;
-        }
-
-        // ... hidding before deleting...
-        File.SetAttributes(filepath, FileAttributes.Hidden);
-
-        // while (FileInUse(filepath)) ;
-        File.Delete(filepath);
-        // while (File.Exists(filepath)) ;
-    }
-
-    public bool FileInUse(string file)
-    {
-        if (File.Exists(file))
-        {
-            try
-            {
-                using (Stream stream = new FileStream(file, FileMode.Open))
-                {
-                    // File/Stream manipulating code here
-                    return false;
-                }
-            }
-            catch
-            {
-                Thread.Sleep(50);
-                return true;
-            }
-        }
-        return false;
     }
 
     private void Archive(string filepath, string? filename)

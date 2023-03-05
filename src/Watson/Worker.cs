@@ -39,13 +39,6 @@ public class Worker : BackgroundService
         // check if multiple instances are running
 
         _watcher.Start();
-
-        // force stop
-        //_hostApplicationLifetime.StopApplication();
-        // while (!stoppingToken.IsCancellationRequested)
-        // {
-        //     _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-        // }
     }
 
     private void ClearDirectory()

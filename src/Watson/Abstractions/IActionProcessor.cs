@@ -1,5 +1,5 @@
 namespace Watson.Abstractions;
 public interface IActionProcessor
 {
-    bool ProcessLine(string line);
+    bool Process(string file, int attempt = 0);
 }
