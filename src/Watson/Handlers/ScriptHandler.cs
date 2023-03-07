@@ -38,12 +38,10 @@ public class ScriptHandler : IScriptHandler
         {
             Console.WriteLine($"Profile path: {_profilePath}");
             var script = File.ReadAllText(_profilePath);
-            var powershell = CreateUnrestricted()
-                    .AddScript(script);
-
-            powershell.Invoke();
-
-            var results = powershell.AddCommand(function)
+            var results = CreateUnrestricted()
+                    .AddScript(script)
+                    .AddStatement()
+                    .AddCommand(function)
                     .AddArgument(parameters)
                     .Invoke();
 
@@ -85,9 +83,9 @@ public class ScriptHandler : IScriptHandler
                 return false;
             }
 
-            var powershell = CreateUnrestricted().AddCommand("Import-Module")
+            var powershell = CreateUnrestricted()
+                    .AddCommand("Import-Module")
                     .AddParameter("Name", module)
-                    .InvokeLog() // import module only
                     .AddStatement()
                     .AddCommand(moduleName);
 
@@ -123,15 +121,14 @@ public class ScriptHandler : IScriptHandler
 
             Console.WriteLine($"Function path: {functionPath}");
             Console.WriteLine($"Invoke: {invoke}");
+
             var script = File.ReadAllText(functionPath);
-            var powershell = PowerShell.Create()
-                      .AddScript(script);
-
-            powershell.Invoke();
-
-            powershell.AddCommand(function)
-                    .AddArgument(parameters)
-                    .Invoke();
+            var powershell = CreateUnrestricted()
+                        .AddScript(script)
+                        .AddStatement()
+                        .AddCommand(function)
+                        .AddArgument(parameters)
+                        .Invoke();
         }
         catch (Exception ex)
         {
