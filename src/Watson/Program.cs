@@ -20,7 +20,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         builder.SetBasePath(basePath)
                .AddJsonFile("appsettings.json", false, true)
 #if DEBUG
-               .AddJsonFile("appsettings.Development.json", true, true)
+               .AddJsonFile($"appsettings.dev.json", true, true)
 #endif
                .AddEnvironmentVariables();
     })
